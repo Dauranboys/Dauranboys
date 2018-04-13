@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<title> Dauranboys Patch Bingo </title>
+<html>
+<head>
+	<style>
+	table, th, td {
+		border: 1px solid black;
+		border-collapse: collapse;
+	}
+	th {
+		height: 50px;
+		width: 250px;
+		font-size: 20px;
+		cursor: pointer;
+	}
+	.middle {
+		cursor: auto;
+		background-color: #00FF00;
+	}
+	.head{
+		display: inline-block;
+	}
+	.gameButtons{
+		display: none;
+	}
+	.picks{
+		color: green;
+		cursor: pointer;
+	}
+	#game{
+		display: none;
+	}
+	</style>
+</head>
+
+<body>
+
+<div> 
+	<div class="head">DAURANBOYS PATCH BINGO</div>
+	<div class="head">Score:</div><div class="head" id="score">0</div>
+	<button class="head gameButtons" id="shuffle">Shuffle</button>
+	<button class="head gameButtons" id="reset">Reset</button>
+</div>
+
+<div id="game">
+	<table>
+	  <tr>
+		<th id="00"></th>
+		<th id="10"></th> 
+		<th id="20"></th>
+		<th id="30"></th>
+		<th id="40"></th>
+	  </tr>
+	  <tr>
+		<th id="01"></th>
+		<th id="11"></th> 
+		<th id="21"></th>
+		<th id="31"></th>
+		<th id="41"></th>
+	  </tr>
+	  <tr>
+		<th id="02"></th>
+		<th id="12"></th> 
+		<th id="22" class="middle"></th>
+		<th id="32"></th>
+		<th id="42"></th>
+	  </tr>
+	  <tr>
+		<th id="03"></th>
+		<th id="13"></th> 
+		<th id="23"></th>
+		<th id="33"></th>
+		<th id="43"></th>
+	  </tr>
+	  <tr>
+		<th id="04"></th>
+		<th id="14"></th> 
+		<th id="24"></th>
+		<th id="34"></th>
+		<th id="44"></th>
+	  </tr>
+	</table>
+</div>
+
+<div id="pick">
+	<button id="confirm"> Bestätigen </button>
+	<button id="fill"> Rest auffüllen </button>
+</div>
+
+<script>
+window.onload=function(){
+	//randomly adding the choices into boxes
+	function add(choices){
+		changedChoices = JSON.parse(JSON.stringify(choices));
+		let ths = document.getElementsByTagName("th");
+		for(let i=0; i<ths.length; ++i){
+			if(!ths[i].classList.contains("middle")){
+				let item = changedChoices[Math.floor(Math.random()*changedChoices.length)];
+				let index = changedChoices.indexOf(item);
+				changedChoices.splice(index, 1);
+				ths[i].innerHTML = item;
+			}
+		}
+	}
+
+	//sets up the bingo table
+	function cont(){
+		bingo = [];
+		let bingoElements = document.getElementsByClassName("toAdd");
+		for(let i=0; i<bingoElements.length; ++i){
+			bingo.push(bingoElements[i].innerHTML);
+		}
+		add(bingo);
+		document.getElementById("pick").style.display = "none";
+		document.getElementById("game").style.display = "inline";
+		let buttons = document.getElementsByClassName("gameButtons");
+		for(let i=0; i<buttons.length; ++i){
+			buttons[i].style.display = "inline-block";
+		}
+	}
+	
+	//fills up the remainder of the 24 elements with random choices
+	function randomFill(){
+		let rndConfirm = confirm("Auswahl auf 24 Elemente auffüllen und Bingo beginnen?\n(Ausgewählt sind " + picked + ", es werden also " + (24-picked) + " zufällig gewählt werden)");
+		if(rndConfirm){
+			bingo = [];
+			let possibleAdd = Array.from(document.getElementsByClassName("picks"));
+			let bingoElements = document.getElementsByClassName("toAdd");
+			for(let i=0; i<bingoElements.length; ++i){
+				let neededElem = bingoElements[i];
+				bingo.push(neededElem.innerHTML);
+				let index = possibleAdd.indexOf(neededElem);
+				possibleAdd.splice(index, 1);
+			}
+			for(let i=picked; i<24; ++i){
+				let item = possibleAdd[Math.floor(Math.random()*possibleAdd.length)];
+				bingo.push(item.innerHTML);
+				let index = possibleAdd.indexOf(item);
+				possibleAdd.splice(index, 1);
+			}
+			add(bingo);
+			document.getElementById("pick").style.display = "none";
+			document.getElementById("game").style.display = "inline";
+			let buttons = document.getElementsByClassName("gameButtons");
+			for(let i=0; i<buttons.length; ++i){
+				buttons[i].style.display = "inline-block";
+			}
+		}
+	}
+	
+	//confirm the picking of 24 elements
+	function confirmation(){
+		console.log(picked);
+		if(picked>24){
+			alert("Zu viele Elemente gewählt (" + picked + "). Insgesamt sollen 24 Elemente gewählt werden.");
+		} else if(picked<24){
+			alert("Weniger als 24 Elemente gewählt (" + picked + "). Insgesamt sollen 24 Elemente gewählt werden.");
+		} else {
+			let proceed = confirm("Mit dieser Auswahl fortfahren?");
+			if(proceed){
+				cont();
+			}
+			cont();
+		}
+	}
+	
+	//mark bingo line to be picked
+	function pick(div){
+		if(!div.target.classList.contains("toAdd")){
+			div.target.style.color = "red";
+			div.target.classList.add("toAdd");
+			picked++;
+		} else {
+			div.target.style.color = "green";
+			div.target.classList.remove("toAdd");
+			picked--;
+		}
+	}
+
+    //setting of clicked boxes
+	function set(th){
+		let thID = th.target.id;
+		if(!checked[thID] && !th.target.classList.contains("middle")){
+			checked[thID] = true;
+			document.getElementById(thID).style.background = "#00FF00";
+			checkBingo(th);
+		} else if(!th.target.classList.contains("middle")){
+			checked[thID] = false;
+			document.getElementById(thID).style.background = "000000";
+			resetBingos(th);
+		}
+	}
+	
+	//creates the original state of variables
+	function setup(){
+		bingo = JSON.parse(JSON.stringify(originalBingo));
+		picked = 0;
+		for(let i=0; i<allth.length; ++i){
+			curID = allth[i].id;
+			checked[curID] = false;
+			if(curID != "22"){
+				document.getElementById(curID).style.background = "000000";
+			}
+		}
+		checked[22] = true;
+		bingoCount = 0;	
+		document.getElementById("score").innerHTML = 0;
+		for(let i=0; i<bingoLen; ++i){
+			if(i<=1){
+				diaBingos[i] = false;
+			}
+			hoBingos[i] = false;
+			verBingos[i] = false;
+		}
+	}
+	
+	//reset to the picking stage
+	function reset(){
+		let resetPrompt = confirm("Bingo zurücksetzen und neue Felder auswählen?");
+		if(resetPrompt){
+			setup();
+			document.getElementById("game").style.display = "none";
+			let buttons = document.getElementsByClassName("gameButtons");
+			for(let i=0; i<buttons.length; ++i){
+				buttons[i].style.display = "none";
+			}
+			document.getElementById("pick").style.display = "inline";
+		}
+	}
+	
+	//change score. dir = 1 -> add, dir = -1 -> substract 
+	function changeScore(dir, amount=1){
+		if(dir === 1){
+			bingoCount += amount;
+		} else {
+			bingoCount -= amount;
+		}
+		document.getElementById("score").innerHTML = bingoCount;
+	}
+	
+	//check if bingo achieved, changes score accordingly
+	function checkBingo(th){
+		horizontalBingo = true;
+		let thID = th.target.id;
+		//left
+		for(let i=thID-10; i>=0; i-=10){
+			if(i<10){
+				i = "0" + i;
+			}
+			if(!checked[i]){
+				horizontalBingo = false;
+				break;
+			}
+		}
+		if(horizontalBingo){
+			//right (###change if bigger)
+			for(let i=Number(thID)+10; i<=(40+(thID%10)); i+=10){
+				if(!checked[i]){
+					horizontalBingo = false;
+					break;
+				}
+			}
+		}
+		//set bingo count appropriately
+		if(horizontalBingo){
+			let firstDigit = Number(String(thID).charAt(1));
+			hoBingos[firstDigit] = true;
+			changeScore(1);
+		}
+		verticalBingo = true;
+		//above
+		for(let i=thID-1; i>=Math.round(thID / 10) * 10; i--){
+			if(i<10){
+				i = "0" + i;
+				}
+			if(!checked[i]){
+				verticalBingo = false;
+				break;
+			}
+		}
+		if(verticalBingo){
+			//below (###change if bigger)
+			for(let i=Number(thID)+1; i<=(Math.round(Number(thID) / 10) * 10 + 4); i++){
+				if(i<10){
+					i = "0" + i;
+				}
+				if(!checked[i]){
+					verticalBingo = false;
+					break;
+				}
+			}
+		}
+		if(verticalBingo){
+			let column = Math.round(Number(thID) / 10)
+			verBingos[column] = true;
+			changeScore(1);
+		}
+		//check diagonals
+		if(checked["00"] && checked["11"] && checked["22"] && checked["33"] && checked["44"]){
+			if(!diaBingos[0]){
+				diaBingos[0] = true;
+				changeScore(1);
+			}
+		}
+		if(checked["04"] && checked["13"] && checked["22"] && checked["31"] && checked["40"]){
+			if(!diaBingos[1]){
+				diaBingos[1] = true;
+				changeScore(1);
+			}
+		}
+	}
+	
+	//check if bingos are destroyed, changes score accordingly
+	function resetBingos(th){
+		let thID = th.target.id;
+		let scoreDecr = 0;
+		let column = Math.round(Number(thID) / 10);
+		let row = Number(String(thID).charAt(1));
+		if(hoBingos[row]){
+			hoBingos[row] = false;
+			scoreDecr++;
+		}
+		if(verBingos[column]){
+			verBingos[column] = false;
+			scoreDecr++;
+		}
+		if(["00","11","22","33","44"].indexOf(thID) != -1){
+			if(diaBingos[0]){
+				diaBingos[0] = false;
+				scoreDecr++;
+			}
+		}
+		if(["04","13","22","31","40"].indexOf(thID) != -1){
+			if(diaBingos[1]){
+				diaBingos[1] = false;
+				scoreDecr++;
+			}
+		}
+		changeScore(-1,scoreDecr);
+	}
+	
+	//single-time happenings, like click events
+	document.getElementById("confirm").addEventListener("click", confirmation);
+	document.getElementById("fill").addEventListener("click", randomFill);
+	document.getElementById("shuffle").addEventListener("click",function(){add(bingo);});
+	document.getElementById("reset").addEventListener("click", reset);
+	
+	//variable initialization
+	let picked = 0;
+	let originalBingo = ['Jonas macht camps', '"Dauran ist immer MVP"', '"Erik ist immer MVP"', 'Bosscall verliert Game', 'Genji zu viel Melee dmg', 
+		'"Wenn der nicht stirbt..."', 'Randoms sind super kacke', 'Jonas wird gefocust', 'Felix am meisten Hero Damage', 'Blackhearts Bullshit',
+		'Lili / Chen hate', 'Cho\'Gall Game', '"Plays werden halt nicht eingerechnet"', '"Ich weiß ja nicht..."', 'Random Hanzo One-Shot zwei Bildschirme weit weg',
+		'Im Draft verloren', '"Jonas, komm doch mal zum Team"', '"FUCK JONAS KOMM DOCH MAL ZUM TEAM"', 'Gegner favored', 'Ragequit aus TS',
+		'Mimimi Overwatch', 'Abathur + Illidan let\'s go', 'Brightwing lvl 50', 'Robin ist der beste Garrosh', '"Raynor ist actually ok"'];
+	console.log("normaler Vorgang");
+	let bingo = JSON.parse(JSON.stringify(originalBingo));
+	for(let i=0; i<bingo.length; ++i){
+		let choice = document.createElement('div');
+		choice.innerHTML = bingo[i];
+		choice.className += "picks";
+		choice.addEventListener("click", pick);
+		document.getElementById("pick").appendChild(choice);
+	}
+	let allth = document.querySelectorAll('th');
+	let checked = {};
+	for(let i=0; i<allth.length; ++i){
+	    curID = allth[i].id;
+	    checked[curID] = false; 
+		allth[i].addEventListener("click", set);
+	}
+	checked[22] = true;
+	let bingoCount = 0;
+	let bingoLen = 5;
+	let hoBingos = [], verBingos = [], diaBingos = [];
+	for(let i=0; i<bingoLen; ++i){
+		if(i<=1){
+			diaBingos[i] = false;
+		}
+		hoBingos[i] = false;
+		verBingos[i] = false;
+	}
+	console.log(hoBingos);
+}
+</script>
+</body>
+</html>
