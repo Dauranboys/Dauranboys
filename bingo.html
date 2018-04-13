@@ -150,7 +150,6 @@ window.onload=function(){
 	
 	//confirm the picking of 24 elements
 	function confirmation(){
-		console.log(picked);
 		if(picked>24){
 			alert("Zu viele Elemente gewählt (" + picked + "). Insgesamt sollen 24 Elemente gewählt werden.");
 		} else if(picked<24){
@@ -352,7 +351,6 @@ window.onload=function(){
 		'Lili / Chen hate', 'Cho\'Gall Game', '"Plays werden halt nicht eingerechnet"', '"Ich weiß ja nicht..."', 'Random Hanzo One-Shot zwei Bildschirme weit weg',
 		'Im Draft verloren', '"Jonas, komm doch mal zum Team"', '"FUCK JONAS KOMM DOCH MAL ZUM TEAM"', 'Gegner favored', 'Ragequit aus TS',
 		'Mimimi Overwatch', 'Abathur + Illidan let\'s go', 'Brightwing lvl 50', 'Robin ist der beste Garrosh', '"Raynor ist actually ok"'];
-	console.log("normaler Vorgang");
 	let bingo = JSON.parse(JSON.stringify(originalBingo));
 	for(let i=0; i<bingo.length; ++i){
 		let choice = document.createElement('div');
@@ -379,7 +377,6 @@ window.onload=function(){
 		hoBingos[i] = false;
 		verBingos[i] = false;
 	}
-	console.log(hoBingos);
 }
 </script>
 </body>
